@@ -1,4 +1,6 @@
 import os
+
+import pandas as pd
 import psycopg2
 from dotenv import load_dotenv
 
@@ -20,14 +22,16 @@ def fetch_query_records(query, params=None):
             user=DB_USER,
             password=DB_PW,
             host=DB_HOST)
+    
+    return pd.read_sql(query, conn, params=params)  
 
-    cursor = conn.cursor()
+#     cursor = conn.cursor()
 
-    cursor.execute(query, params)
+#     cursor.execute(query, params)
 
-    response = cursor.fetchall()
+#     response = cursor.fetchall()
 
-    conn.close()
+#     conn.close()
 
-    return response
+#     return response
 

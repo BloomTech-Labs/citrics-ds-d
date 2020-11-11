@@ -1,5 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from collections import OrderedDict
 from typing import List
+
+from fastapi import APIRouter, HTTPException
 
 from app.database import fetch_query_records
 from app import schemas
@@ -17,17 +19,17 @@ async def city(city_id: int):
 
     ### Response
     JSON string containing 
-    - **city**: [str] . . . standard format city name, state name
+    - **city**: [str] . . . standard format city name
+    - **state**: [str] ... standard format state name
     - **pop**: [int] . . . population estimate
     - **age**: [float] . . . average age of residents
-    - **income_household**: [int] . . . median household income
-    - **income_individual**: [int] . . . median individual income
-    - **home**: [int] . . . median home/condo price
-    - **COLI**: [float] . . . Cost of Living Index [ACCRA Cost of Living Index](https://en.wikipedia.org/wiki/ACCRA_Cost_of_Living_Index)
+    - **household**: [int] . . . median household income
+    - **individual**: [int] . . . median individual income
+    - **house**: [int] . . . median home/condo price
+    - **coli**: [float] . . . Cost of Living Index [ACCRA Cost of Living Index](https://en.wikipedia.org/wiki/ACCRA_Cost_of_Living_Index)
     """
 
     # Validate the city_id
-    
     if city_id not in range(1278): 
         raise HTTPException(status_code=404, detail=f'City id {city_id} not found')
 
@@ -38,27 +40,14 @@ async def city(city_id: int):
                 WHERE
                     city_id = (%s);
     '''
-
     params = (city_id,)
+    df = fetch_query_records(query, params)
+    df = df.rename(columns={'abbrev': 'state'})
+    columns = ['city', 'state', 'pop', 'age', 'household', 'individual', 'house', 'coli']
+    return df[columns].to_dict('records', into=OrderedDict)[0]
 
-    if query[:8] == 'SELECT *':
-        columns = ['city_id',
-                    'city',
-                    'population',
-                    'median_age',
-                    'median_household_income',
-                    'median_individual_income',
-                    'median_home_cost',
-                    'median_rent',
-                    'Cost-of-Living-Index']
-        results = list(fetch_query_records(query, params)[0])
-        return dict(zip(columns, results))
 
-    return fetch_query_records(query, params)
-
-#    return df.loc[city_id].to_json(orient='index')  # orient='split', index=False)
-
-@router.get('/all_cities/', response_model=List[schemas.City])
+@router.get('/all_cities/') #, response_model=List[schemas.City])
 async def get_all_cities():
     '''
     Returns a list of all cities and their stats
@@ -66,32 +55,20 @@ async def get_all_cities():
     ### Response
     JSON string containing 
     - **city**: [str] . . . standard format city name, state name
+    - **state**: [str] ... standard format state name
     - **pop**: [int] . . . population estimate
     - **age**: [float] . . . average age of residents
-    - **income_household**: [int] . . . median household income
-    - **income_individual**: [int] . . . median individual income
-    - **home**: [int] . . . median home/condo price
-    - **rent**: [int] . . . median rent price
-    - **COLI**: [float] . . . Cost of Living Index [ACCRA Cost of Living Index](https://en.wikipedia.org/wiki/ACCRA_Cost_of_Living_Index)
-
+    - **household**: [int] . . . median household income
+    - **individual**: [int] . . . median individual income
+    - **house**: [int] . . . median home/condo price
+    - **coli**: [float] . . . Cost of Living Index [ACCRA Cost of Living Index](https://en.wikipedia.org/wiki/ACCRA_Cost_of_Living_Index)
     '''
     query = '''SELECT *
                 FROM
                     citydata
     '''
-    columns = ['city_id',
-                    'city',
-                    'population',
-                    'median_age',
-                    'median_household_income',
-                    'median_individual_income',
-                    'median_home_cost',
-                    'median_rent',
-                    'Cost_of_Living_Index']
     citydata = fetch_query_records(query)
-    results = []
-    for i in citydata:
-        # uses schema to validate data type
-        city_dict = schemas.City(**dict(zip(columns,i)))
-        results.append(city_dict)
-    return results
+    df = fetch_query_records(query)
+    df = df.rename(columns={'abbrev': 'state'})
+    columns = ['city', 'state', 'pop', 'age', 'household', 'individual', 'house', 'coli']
+    return df[columns].to_dict('records', into=OrderedDict)
