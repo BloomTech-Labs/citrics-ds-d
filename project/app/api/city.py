@@ -54,7 +54,7 @@ async def get_all_cities():
 
     ### Response
     JSON string containing 
-    - **city**: [str] . . . standard format city name, state name
+    - **city**: [str] . . . standard format city name
     - **state**: [str] ... standard format state name
     - **pop**: [int] . . . population estimate
     - **age**: [float] . . . average age of residents
