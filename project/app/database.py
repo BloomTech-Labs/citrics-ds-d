@@ -24,14 +24,3 @@ def fetch_query_records(query, params=None):
             host=DB_HOST)
     
     return pd.read_sql(query, conn, params=params)  
-
-#     cursor = conn.cursor()
-
-#     cursor.execute(query, params)
-
-#     response = cursor.fetchall()
-
-#     conn.close()
-
-#     return response
-
