@@ -67,7 +67,6 @@ async def get_all_cities():
                 FROM
                     citydata
     '''
-    citydata = fetch_query_records(query)
     df = fetch_query_records(query)
     df = df.rename(columns={'abbrev': 'state'})
     columns = ['city', 'state', 'pop', 'age', 'household', 'individual', 'house', 'coli']
